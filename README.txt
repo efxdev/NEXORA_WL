@@ -1,9 +1,27 @@
-# EPS-TOPIK 2026 Picture Vocabulary Index
+NEXORA WHITELIST FINAL
 
-- Textbook 1 chapters 1–30
-- Textbook 2 chapters 1–30
-- Illustrated vocabulary cards extracted from the vocabulary pages only.
-- Conversation, Culture & Information and EPS-TOPIK question images are excluded from the card set.
-- Each card shows the Korean word and the textbook English gloss; Bengali meaning is generated in batches on demand.
+MAIN FILE: index.html
 
-Upload index.html + data.json + img/ to your website.
+SYSTEM:
+- No login
+- No account registration
+- Community tasks
+- Email submission
+- X/Twitter username
+- BNB Smart Chain wallet address
+- Submit to Supabase database
+
+TASKS:
+Edit only assets/tasks.js later.
+
+DATABASE:
+1. Open Supabase SQL Editor.
+2. Run SUPABASE_SQL.sql
+3. Open assets/app.js
+4. Add:
+   SUPABASE_URL
+   SUPABASE_ANON_KEY
+
+IMPORTANT SECURITY:
+Never collect seed phrases or private keys.
+The included RLS setup allows public INSERT but not public reading of applications.
