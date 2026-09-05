@@ -1,11 +1,156 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NEXORA — Whitelist</title><link rel="stylesheet" href="style.css"></head><body>
-<div class="grid"></div><div class="stars"></div><div class="glow g1"></div><div class="glow g2"></div>
-<header class="nav"><div class="brand"><span class="mark">N</span>NEXORA</div><div class="status"><span class="dot"></span>WHITELIST PORTAL LIVE</div></header>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXORA — Whitelist Campaign</title>
+<meta name="description" content="NEXORA Web3 whitelist campaign">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="grid"></div><div class="stars"></div><div class="aurora a1"></div><div class="aurora a2"></div>
+
+<nav>
+  <a class="brand" href="#"><span class="logo">N</span><span>NEXORA</span></a>
+  <div class="nav-status"><i></i> APPLICATIONS OPEN</div>
+</nav>
+
 <main>
-<section class="hero"><div class="hero-copy"><span class="eyebrow">NEXORA • WHITELIST SEASON 01</span><h1>ENTER THE<br><span class="grad">NEXT PHASE.</span></h1><p class="muted">Complete the required community missions, submit your information, and secure your place in the NEXORA whitelist campaign.</p><p style="margin-top:30px"><a class="btn primary" href="#missions">START WHITELIST →</a></p></div><div class="orb"></div><div class="orb2"></div><div class="core"><b>NEX</b></div></section>
-<div class="network"><b>NEXORA WHITELIST</b><span>⬡ BNB ECOSYSTEM</span><span>◎ SOLANA</span><span>⬢ POLYGON</span><span>◇ WEB3</span></div>
-<section id="missions" class="wrap"><span class="label">01 / REQUIRED COMMUNITY MISSIONS</span><h2 class="title">COMPLETE THE<br><span class="grad">MISSIONS.</span></h2><p class="muted">Finish the available community tasks before submitting your whitelist application.</p><div id="tasks" class="tasks"></div></section>
-<section class="submit-section" id="apply"><div class="formbox"><span class="label">02 / WHITELIST APPLICATION</span><h2>SUBMIT YOUR<br><span class="grad">INFORMATION.</span></h2><p class="muted">No account or login is required. Submit the requested details once to register your whitelist application.</p>
-<form id="whitelistForm" class="fields"><div class="field"><label>EMAIL ADDRESS</label><input id="email" type="email" placeholder="you@example.com" required></div><div class="field"><label>X / TWITTER USERNAME</label><input id="twitter" type="text" placeholder="@username" required></div><div class="field"><label>TELEGRAM USERNAME</label><input id="telegram" type="text" placeholder="@username" required></div><div class="field"><label>BNB SMART CHAIN WALLET ADDRESS</label><input id="wallet" type="text" placeholder="0x..." required></div><button class="btn primary" type="submit">SUBMIT WHITELIST APPLICATION →</button></form>
-<div id="result" class="result"></div><p class="notice">By submitting, you confirm that the information provided is yours. A wallet address alone does not grant access to funds. Never submit your private key or seed phrase.</p></div></section>
-</main><footer class="footer"><span>© 2026 NEXORA NETWORK</span><span>WHITELIST • COMMUNITY • WEB3</span></footer><script src="tasks.js"></script><script src="app.js"></script></body></html>
+<section class="hero reveal">
+  <div class="hero-copy">
+    <div class="eyebrow">NEXORA • WHITELIST CAMPAIGN / 01</div>
+    <h1>ENTER THE<br><span>NEXT PHASE.</span></h1>
+    <p>Complete the community missions, secure your campaign position and climb the rankings through validated referrals.</p>
+    <div class="hero-actions"><a href="#missions" class="btn primary">ENTER CAMPAIGN →</a><a href="#how" class="btn">HOW IT WORKS</a></div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="orbit o1"><b></b></div><div class="orbit o2"><b></b></div><div class="orbit o3"></div>
+    <div class="core"><strong>NEX</strong><small>CORE</small></div>
+  </div>
+</section>
+
+<section class="campaign-status reveal">
+  <div><span class="mini">CAMPAIGN STATUS</span><b><i></i> APPLICATIONS OPEN</b></div>
+  <div class="appcount"><span class="mini">TOTAL APPLICATIONS</span><strong id="applicationCount">—</strong></div>
+</section>
+
+<section id="missions" class="section reveal">
+  <span class="section-tag">01 / COMMUNITY ACCESS</span>
+  <h2>COMPLETE THE <em>MISSIONS.</em></h2>
+  <p class="lead">Complete the required community actions before submitting your whitelist application.</p>
+  <div class="task-grid" id="tasks"></div>
+</section>
+
+<section id="apply" class="apply-section reveal">
+  <div class="form-card">
+    <span class="section-tag">02 / WHITELIST APPLICATION</span>
+    <h2>SECURE YOUR <em>POSITION.</em></h2>
+    <p class="lead">No login. No wallet connection. Submit your campaign details securely.</p>
+    <form id="whitelistForm">
+      <label>EMAIL ADDRESS<input id="email" type="email" placeholder="you@example.com" required></label>
+      <label>X / TWITTER USERNAME<input id="twitter" type="text" placeholder="@username" required></label>
+      <label>TELEGRAM USERNAME<input id="telegram" type="text" placeholder="@username" required></label>
+      <label>EVM WALLET ADDRESS<input id="wallet" type="text" placeholder="0x..." required></label>
+      <input id="referrer" type="hidden">
+      <button class="btn primary submit" type="submit">SUBMIT WHITELIST APPLICATION →</button>
+    </form>
+    <p class="notice">Never submit your seed phrase or private key. Only a public EVM wallet address is requested.</p>
+  </div>
+</section>
+
+<section id="success" class="success-section hidden">
+  <div class="success-card">
+    <div class="success-check">✓</div>
+    <span class="section-tag">APPLICATION CONFIRMED</span>
+    <h2>YOU'RE <em>IN.</em></h2>
+    <div class="rankbox"><span>YOUR CURRENT CAMPAIGN POSITION</span><strong id="rankResult">#—</strong><small id="rankSub">Campaign position confirmed</small></div>
+    <div class="refbox">
+      <span class="mini">YOUR REFERRAL LINK</span>
+      <div><code id="refLink">—</code><button id="copyRef">COPY</button></div>
+      <p>Share your link. Valid referrals can improve your campaign position.</p>
+    </div>
+    <div class="progress-card">
+      <div class="progress-top"><span>YOUR RANK PROGRESS</span><b id="refCount">0 VALID REFERRALS</b></div>
+      <div class="bar"><i id="progressBar"></i></div>
+      <strong id="nextBoost">NEXT BOOST UNLOCKS SOON</strong>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="section reveal">
+  <span class="section-tag">03 / RANK MECHANICS</span>
+  <h2>YOUR RANK <em>PROGRESS.</em></h2>
+  <div class="rank-info">
+    <div class="info-card"><b>STARTING POSITION</b><strong>CAMPAIGN BASELINE</strong><p>New verified applications receive a sequential campaign position from the configured campaign baseline.</p></div>
+    <div class="info-card"><b>VALID REFERRALS</b><strong>MOVE UPWARD</strong><p>Only valid, unique applications are counted toward referral progress.</p></div>
+    <div class="info-card"><b>MORE CONTRIBUTION</b><strong>MORE OPPORTUNITY</strong><p>Higher campaign positions can improve eligibility under the published campaign rules.</p></div>
+  </div>
+</section>
+
+<section class="section reveal">
+  <span class="section-tag">04 / REFERRAL MILESTONES</span>
+  <h2>CLIMB THE <em>RANKS.</em></h2>
+  <div class="milestones">
+    <div><b>10</b><span>VALID REFERRALS</span><small>EARLY BOOST</small></div>
+    <div><b>50</b><span>VALID REFERRALS</span><small>MAJOR BOOST</small></div>
+    <div><b>100</b><span>VALID REFERRALS</span><small>HIGHER PRIORITY</small></div>
+    <div><b>250</b><span>VALID REFERRALS</span><small>ELITE CONTRIBUTOR</small></div>
+  </div>
+  <p class="fine">Referral effects and final eligibility are subject to validation and campaign rules.</p>
+</section>
+
+<section class="section reveal">
+  <span class="section-tag">05 / TOP CONTRIBUTORS</span>
+  <h2>CAMPAIGN <em>LEADERBOARD.</em></h2>
+  <div class="leaderboard" id="leaderboard"><p class="loading">Loading verified leaderboard…</p></div>
+</section>
+
+<section class="section ecosystem reveal">
+  <span class="section-tag">06 / MULTI-CHAIN FUTURE</span>
+  <h2>ONE COMMUNITY.<br><em>MULTI-CHAIN VISION.</em></h2>
+  <p class="lead">NEXORA is designed around a multi-chain Web3 vision.</p>
+  <div class="chains"><span>⬡ BNB CHAIN</span><span>◇ ETHEREUM</span><span>◎ SOLANA</span><span>⬢ POLYGON</span></div>
+  <p class="fine">Names shown here describe ecosystem focus and do not imply official partnerships or endorsements.</p>
+</section>
+
+<section class="fair reveal">
+  <span class="section-tag">07 / FAIR PARTICIPATION</span>
+  <h2>BUILT FOR A <em>FAIR CAMPAIGN.</em></h2>
+  <div class="fair-grid">
+    <div>✓ ONE APPLICATION PER PARTICIPANT</div><div>✓ DUPLICATE DETAILS BLOCKED</div>
+    <div>✓ REFERRALS SUBJECT TO VALIDATION</div><div>✓ SUSPICIOUS ACTIVITY MAY BE REVIEWED</div>
+  </div>
+</section>
+
+<section class="reward reveal">
+  <div class="reward-glow"></div>
+  <span class="section-tag">08 / COMMUNITY REWARDS</span>
+  <h2>$50,000</h2><h3>TOTAL COMMUNITY REWARD POOL</h3>
+  <div class="reward-grid"><div><b>TOP 1–20</b><span>Performance-based allocation</span></div><div><b>TOP 21–100</b><span>Eligible community allocation</span></div></div>
+  <p>Final rewards, eligibility and distribution remain subject to campaign validation and published rules.</p>
+</section>
+
+<section class="section faq reveal">
+  <span class="section-tag">09 / SUPPORT</span><h2>FREQUENTLY ASKED <em>QUESTIONS.</em></h2>
+  <details><summary>Do I need to connect my wallet?</summary><p>No. This campaign only requests a public EVM wallet address. Never provide a private key or seed phrase.</p></details>
+  <details><summary>Can I submit more than one application?</summary><p>No. Duplicate participant details may be rejected or reviewed.</p></details>
+  <details><summary>How are referrals counted?</summary><p>Only unique applications attributed to your referral link and passing campaign validation may count.</p></details>
+  <details><summary>Does a higher rank guarantee a reward?</summary><p>No. Final eligibility depends on campaign rules, validation and any announced reward criteria.</p></details>
+</section>
+
+<section class="section rules reveal">
+  <span class="section-tag">10 / CAMPAIGN RULES</span><h2>RULES & <em>TERMS.</em></h2>
+  <ol>
+    <li>Provide accurate information belonging to you.</li>
+    <li>One participant may submit only one application.</li>
+    <li>Duplicate, fraudulent or suspicious applications may be removed.</li>
+    <li>Referral credit applies only to valid applications.</li>
+    <li>Campaign positions and rewards remain subject to final validation.</li>
+    <li>Never provide seed phrases, private keys or wallet recovery information.</li>
+    <li>Campaign rules may be updated where reasonably necessary for fairness and security.</li>
+  </ol>
+</section>
+</main>
+
+<footer><span>© 2026 NEXORA NETWORK</span><span>WHITELIST • COMMUNITY • WEB3</span></footer>
+<script src="tasks.js"></script><script src="app.js"></script>
+</body></html>

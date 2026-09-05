@@ -1,28 +1,19 @@
-NEXORA WHITELIST FINAL
+NEXORA FINAL V3
 
-MAIN FILE: index.html
-
-SYSTEM:
-- No login
-- No account registration
-- Community tasks
-- Email submission
-- X/Twitter username
-- Telegram username
-- BNB Smart Chain wallet address
-- Submit to Supabase database
-
-TASKS:
-Edit only assets/tasks.js later.
+FILES FOR GITHUB ROOT:
+index.html
+style.css
+app.js
+tasks.js
 
 DATABASE:
-1. Open Supabase SQL Editor.
-2. Run SUPABASE_SQL.sql
-3. Open assets/app.js
-4. Add:
-   SUPABASE_URL
-   SUPABASE_ANON_KEY
+Run SUPABASE_FINAL_V3.sql in Supabase SQL Editor.
 
-IMPORTANT SECURITY:
-Never collect seed phrases or private keys.
-The included RLS setup allows public INSERT but not public reading of applications.
+IMPORTANT:
+- Website uses your configured Supabase URL and publishable key.
+- Never expose service_role keys.
+- Never collect seed phrases or private keys.
+- The campaign rank baseline starts at #1501 via the database sequence.
+- Referral counts are increased when a new application uses a valid referral code.
+
+After SQL setup, upload the 4 website files to the ROOT of your GitHub repository.
