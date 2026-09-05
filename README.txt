@@ -8,6 +8,7 @@ SYSTEM:
 - Community tasks
 - Email submission
 - X/Twitter username
+- Telegram username
 - BNB Smart Chain wallet address
 - Submit to Supabase database
 
