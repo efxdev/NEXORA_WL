@@ -1,54 +1,28 @@
 const SUPABASE_URL = "https://mhkhckiqpxgbpaaslqga.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_u3M4IzCLppREM9LzMziTeA_6cnKJXmN";
-
 const CAMPAIGN_BASELINE = 1500;
 
 
-/* =========================
-   HELPERS
-========================= */
-
-function maskWallet(v) {
-    return v ? `${v.slice(0, 6)}••••${v.slice(-4)}` : "Anonymous";
-}
-
-function getRef() {
-    return new URLSearchParams(window.location.search).get("ref") || "";
-}
-
-function referralCode() {
-    return (
-        "NEX" +
-        crypto.randomUUID()
-            .replaceAll("-", "")
-            .slice(0, 10)
-            .toUpperCase()
-    );
-}
-
-function evmValid(v) {
-    return /^0x[a-fA-F0-9]{40}$/.test(v);
-}
-
-
-/* =========================
-   SUPABASE API
-========================= */
+/* ===============================
+   SUPABASE REQUEST
+================================ */
 
 async function api(path, options = {}) {
 
     const response = await fetch(
         SUPABASE_URL + path,
         {
-            ...options,
+            method: options.method || "GET",
 
             headers: {
-                apikey: SUPABASE_ANON_KEY,
-                Authorization: "Bearer " + SUPABASE_ANON_KEY,
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": "Bearer " + SUPABASE_ANON_KEY,
                 "Content-Type": "application/json",
 
                 ...(options.headers || {})
-            }
+            },
+
+            body: options.body || null
         }
     );
 
@@ -56,24 +30,71 @@ async function api(path, options = {}) {
 
         const errorText = await response.text();
 
-        console.error(
-            "SUPABASE ERROR:",
-            response.status,
-            errorText
-        );
+        console.error("SUPABASE ERROR:", response.status, errorText);
 
-        throw new Error(
-            `${response.status}: ${errorText}`
-        );
+        throw new Error(errorText);
     }
 
     return response;
 }
 
 
-/* =========================
-   TASKS
-========================= */
+/* ===============================
+   GET REFERRAL CODE
+================================ */
+
+function getRef() {
+
+    const params = new URLSearchParams(window.location.search);
+
+    return params.get("ref") || "";
+}
+
+
+/* ===============================
+   GENERATE REFERRAL CODE
+================================ */
+
+function generateReferralCode() {
+
+    return "NEX" +
+        Date.now().toString(36).toUpperCase() +
+        Math.random()
+            .toString(36)
+            .substring(2, 7)
+            .toUpperCase();
+}
+
+
+/* ===============================
+   VALIDATE EVM WALLET
+================================ */
+
+function isValidEVM(address) {
+
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+}
+
+
+/* ===============================
+   MASK WALLET
+================================ */
+
+function maskWallet(wallet) {
+
+    if (!wallet) return "Anonymous";
+
+    return (
+        wallet.substring(0, 6) +
+        "••••" +
+        wallet.substring(wallet.length - 4)
+    );
+}
+
+
+/* ===============================
+   RENDER TASKS
+================================ */
 
 function renderTasks() {
 
@@ -98,9 +119,9 @@ function renderTasks() {
 
                 <a
                     class="btn primary"
+                    href="${task.link}"
                     target="_blank"
                     rel="noopener"
-                    href="${task.link}"
                 >
                     COMPLETE TASK →
                 </a>
@@ -111,16 +132,16 @@ function renderTasks() {
 }
 
 
-/* =========================
-   LIVE APPLICATION COUNT
-========================= */
+/* ===============================
+   APPLICATION COUNT
+================================ */
 
 async function loadStats() {
 
-    const countEl =
+    const countElement =
         document.querySelector("#applicationCount");
 
-    if (!countEl) return;
+    if (!countElement) return;
 
     try {
 
@@ -128,7 +149,7 @@ async function loadStats() {
             "/rest/v1/whitelist_applications?select=id",
             {
                 headers: {
-                    Prefer: "count=exact"
+                    "Prefer": "count=exact"
                 }
             }
         );
@@ -136,24 +157,30 @@ async function loadStats() {
         const range =
             response.headers.get("content-range");
 
-        const count =
-            range?.split("/")[1] || "0";
+        let count = 0;
 
-        countEl.textContent =
-            Number(count).toLocaleString();
+        if (range && range.includes("/")) {
+
+            count = Number(
+                range.split("/")[1]
+            );
+        }
+
+        countElement.textContent =
+            count.toLocaleString();
 
     } catch (error) {
 
-        console.error("Stats error:", error);
+        console.error("COUNT ERROR:", error);
 
-        countEl.textContent = "LIVE";
+        countElement.textContent = "LIVE";
     }
 }
 
 
-/* =========================
+/* ===============================
    LEADERBOARD
-========================= */
+================================ */
 
 async function loadLeaderboard() {
 
@@ -175,62 +202,55 @@ async function loadLeaderboard() {
         const rows =
             await response.json();
 
-        if (!rows || !rows.length) {
+        if (!rows || rows.length === 0) {
 
-            box.innerHTML = `
-                <p class="loading">
-                    Leaderboard will appear as verified applications arrive.
-                </p>
-            `;
+            box.innerHTML =
+                `<p class="loading">
+                    Leaderboard will appear as applications arrive.
+                </p>`;
 
             return;
         }
 
-        box.innerHTML =
-            rows.map(row => `
+        box.innerHTML = rows.map(row => `
 
-                <div class="lb-row">
+            <div class="lb-row">
 
-                    <span class="lb-rank">
-                        #${row.campaign_rank || "—"}
-                    </span>
+                <span class="lb-rank">
+                    #${row.campaign_rank}
+                </span>
 
-                    <span>
-                        ${maskWallet(row.evm_address)}
-                    </span>
+                <span>
+                    ${maskWallet(row.evm_address)}
+                </span>
 
-                    <span class="lb-ref">
-                        ${row.referral_count || 0}
-                        REFERRALS
-                    </span>
+                <span class="lb-ref">
+                    ${row.referral_count || 0} REFERRALS
+                </span>
 
-                </div>
+            </div>
 
-            `).join("");
+        `).join("");
 
     } catch (error) {
 
-        console.error(
-            "Leaderboard error:",
-            error
-        );
+        console.error("LEADERBOARD ERROR:", error);
 
-        box.innerHTML = `
-            <p class="loading">
-                Leaderboard is loading...
-            </p>
-        `;
+        box.innerHTML =
+            `<p class="loading">
+                Leaderboard unavailable.
+            </p>`;
     }
 }
 
 
-/* =========================
-   REFERRAL PROGRESS
-========================= */
+/* ===============================
+   PROGRESS
+================================ */
 
-function progress(refs) {
+function updateProgress(referrals) {
 
-    const refCountEl =
+    const refCount =
         document.querySelector("#refCount");
 
     const progressBar =
@@ -239,43 +259,50 @@ function progress(refs) {
     const nextBoost =
         document.querySelector("#nextBoost");
 
-
-    if (
-        !refCountEl ||
-        !progressBar ||
-        !nextBoost
-    ) return;
+    if (!refCount || !progressBar || !nextBoost) return;
 
 
     const milestones = [10, 50, 100, 250];
 
-    const next =
-        milestones.find(x => refs < x) || 250;
+    let previous = 0;
 
-    const previous =
-        [...milestones]
-            .filter(x => x <= refs)
-            .pop() || 0;
+    let next = 10;
 
+    for (const milestone of milestones) {
 
-    const percentage =
-        next === previous
-            ? 100
-            : Math.min(
-                100,
-                ((refs - previous) /
-                (next - previous)) * 100
-            );
+        if (referrals < milestone) {
+
+            next = milestone;
+
+            break;
+        }
+
+        previous = milestone;
+    }
 
 
-    refCountEl.textContent =
-        `${refs} VALID REFERRALS`;
+    let percent = 100;
+
+    if (referrals < 250) {
+
+        percent =
+            ((referrals - previous) /
+                (next - previous)) * 100;
+    }
+
+
+    percent =
+        Math.max(0, Math.min(100, percent));
+
+
+    refCount.textContent =
+        referrals + " VALID REFERRALS";
 
     progressBar.style.width =
-        percentage + "%";
+        percent + "%";
 
 
-    if (refs >= 250) {
+    if (referrals >= 250) {
 
         nextBoost.textContent =
             "ELITE BOOST UNLOCKED";
@@ -283,464 +310,342 @@ function progress(refs) {
     } else {
 
         nextBoost.textContent =
-            `${next - refs} MORE REFERRALS TO NEXT MILESTONE`;
+            (next - referrals) +
+            " MORE REFERRALS TO NEXT MILESTONE";
     }
 }
 
 
-/* =========================
+/* ===============================
    SUBMIT APPLICATION
-========================= */
+================================ */
 
-async function submit(event) {
+async function handleSubmit(event) {
 
     event.preventDefault();
 
-
-    const form = event.target;
-
-    const emailEl =
-        document.querySelector("#email");
-
-    const twitterEl =
-        document.querySelector("#twitter");
-
-    const telegramEl =
-        document.querySelector("#telegram");
-
-    const walletEl =
-        document.querySelector("#wallet");
+    console.log("NEXORA SUBMIT STARTED");
 
 
-    if (
-        !emailEl ||
-        !twitterEl ||
-        !telegramEl ||
-        !walletEl
-    ) {
-
-        alert(
-            "Form configuration error. Please refresh and try again."
-        );
-
-        return;
-    }
-
+    const form = event.currentTarget;
 
     const email =
-        emailEl.value.trim().toLowerCase();
+        document.querySelector("#email").value
+            .trim()
+            .toLowerCase();
 
     const twitter =
-        twitterEl.value.trim();
+        document.querySelector("#twitter").value
+            .trim();
 
     const telegram =
-        telegramEl.value.trim();
+        document.querySelector("#telegram").value
+            .trim();
 
     const wallet =
-        walletEl.value.trim();
+        document.querySelector("#wallet").value
+            .trim();
 
 
-    const button =
-        form.querySelector("button[type='submit']") ||
-        form.querySelector("button");
+    const submitButton =
+        form.querySelector('button[type="submit"]');
 
 
     /* VALIDATION */
 
-    if (!email) {
+    if (!email || !twitter || !telegram || !wallet) {
 
-        alert("Please enter your email address.");
-
-        return;
-    }
-
-
-    if (!twitter) {
-
-        alert("Please enter your X / Twitter username.");
+        alert("Please complete all required fields.");
 
         return;
     }
 
 
-    if (!telegram) {
-
-        alert("Please enter your Telegram username.");
-
-        return;
-    }
-
-
-    if (!evmValid(wallet)) {
+    if (!isValidEVM(wallet)) {
 
         alert(
-            "Please enter a valid EVM wallet address.\n\nExample:\n0x1234567890abcdef1234567890abcdef12345678"
+            "Please enter a valid EVM wallet address."
         );
 
         return;
     }
 
 
-    /* LOADING */
+    /* LOADING STATE */
 
-    if (button) {
+    submitButton.disabled = true;
 
-        button.disabled = true;
-
-        button.textContent =
-            "VERIFYING APPLICATION...";
-    }
-
-
-    const code = referralCode();
-
-    const ref =
-        getRef() || null;
-
-
-    const payload = {
-
-        email: email,
-
-        twitter_username: twitter,
-
-        telegram_username: telegram,
-
-        evm_address: wallet,
-
-        referral_code: code,
-
-        referred_by: ref,
-
-        referral_count: 0
-    };
-
-
-    console.log(
-        "Submitting application:",
-        payload
-    );
+    submitButton.textContent =
+        "VERIFYING APPLICATION...";
 
 
     try {
 
 
-        /* =========================
-           INSERT APPLICATION
-        ========================= */
+        /* ==========================
+           CHECK DUPLICATE EMAIL
+        ========================== */
 
-        const response = await api(
-            "/rest/v1/whitelist_applications",
-            {
-                method: "POST",
-
-                headers: {
-                    Prefer:
-                        "return=representation"
-                },
-
-                body:
-                    JSON.stringify(payload)
-            }
-        );
+        const duplicateResponse =
+            await api(
+                "/rest/v1/whitelist_applications" +
+                "?email=eq." +
+                encodeURIComponent(email) +
+                "&select=id" +
+                "&limit=1"
+            );
 
 
-        let savedRows = [];
+        const duplicates =
+            await duplicateResponse.json();
 
 
-        try {
+        if (duplicates.length > 0) {
 
-            savedRows =
-                await response.json();
-
-        } catch (jsonError) {
-
-            console.warn(
-                "Insert succeeded but JSON response could not be parsed.",
-                jsonError
+            throw new Error(
+                "DUPLICATE_APPLICATION"
             );
         }
 
 
-        let saved =
+        /* ==========================
+           CREATE APPLICATION
+        ========================== */
+
+        const referralCode =
+            generateReferralCode();
+
+        const referredBy =
+            getRef() || null;
+
+
+        const payload = {
+
+            email: email,
+
+            twitter_username: twitter,
+
+            telegram_username: telegram,
+
+            evm_address: wallet,
+
+            referral_code: referralCode,
+
+            referred_by: referredBy,
+
+            referral_count: 0
+        };
+
+
+        console.log(
+            "INSERTING APPLICATION"
+        );
+
+
+        const insertResponse =
+            await api(
+                "/rest/v1/whitelist_applications",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Prefer":
+                            "return=representation"
+                    },
+
+                    body:
+                        JSON.stringify(payload)
+                }
+            );
+
+
+        const savedRows =
+            await insertResponse.json();
+
+
+        const saved =
             Array.isArray(savedRows)
                 ? savedRows[0]
                 : savedRows;
 
 
-        /* =========================
-           FALLBACK:
-           FETCH THE SAVED ROW
-        ========================= */
-
-        if (!saved || !saved.campaign_rank) {
-
-            console.log(
-                "Fetching saved application..."
-            );
-
-            const lookupResponse =
-                await api(
-                    "/rest/v1/whitelist_applications" +
-                    "?select=campaign_rank,referral_code,referral_count" +
-                    "&referral_code=eq." +
-                    encodeURIComponent(code) +
-                    "&limit=1"
-                );
-
-
-            const lookupRows =
-                await lookupResponse.json();
-
-
-            if (
-                lookupRows &&
-                lookupRows.length
-            ) {
-
-                saved =
-                    lookupRows[0];
-            }
-        }
-
-
-        /* =========================
-           CONFIRM SUCCESS
-        ========================= */
-
-        if (!saved) {
-
-            throw new Error(
-                "Application was submitted but the saved record could not be retrieved."
-            );
-        }
-
-
         console.log(
-            "APPLICATION SUCCESS:",
+            "APPLICATION SAVED:",
             saved
         );
 
 
-        /* =========================
-           HIDE FORM
-        ========================= */
+        if (!saved) {
 
-        const applySection =
-            form.closest(".apply-section");
-
-        if (applySection) {
-
-            applySection.classList.add(
-                "hidden"
-            );
-
-        } else {
-
-            form.classList.add(
-                "hidden"
+            throw new Error(
+                "SAVE_RESPONSE_EMPTY"
             );
         }
 
 
-        /* =========================
-           SHOW SUCCESS SCREEN
-        ========================= */
+        /* ==========================
+           SUCCESS UI
+        ========================== */
 
-        const success =
+        const applySection =
+            document.querySelector("#apply");
+
+        const successSection =
             document.querySelector("#success");
 
 
-        if (success) {
+        /* FIRST SHOW SUCCESS */
 
-            success.classList.remove(
-                "hidden"
-            );
+        successSection.classList.remove("hidden");
 
+        successSection.style.display = "block";
 
-            setTimeout(() => {
+        successSection.style.opacity = "1";
 
-                success.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-
-            }, 100);
-        }
+        successSection.style.visibility = "visible";
 
 
-        /* =========================
-           SHOW RANK
-        ========================= */
+        /* THEN HIDE FORM */
 
-        const rankResult =
-            document.querySelector("#rankResult");
+        applySection.style.display = "none";
 
+
+        /* RANK */
 
         const rank =
             saved.campaign_rank ||
             CAMPAIGN_BASELINE + 1;
 
 
-        if (rankResult) {
-
-            rankResult.textContent =
-                "#" + rank;
-        }
+        document.querySelector("#rankResult")
+            .textContent = "#" + rank;
 
 
-        /* =========================
-           REFERRAL LINK
-        ========================= */
+        /* REFERRAL LINK */
 
         const referralLink =
             window.location.origin +
             window.location.pathname +
             "?ref=" +
             encodeURIComponent(
-                saved.referral_code || code
+                saved.referral_code
             );
 
 
-        const refLinkEl =
-            document.querySelector("#refLink");
+        document.querySelector("#refLink")
+            .textContent = referralLink;
 
 
-        if (refLinkEl) {
+        /* PROGRESS */
 
-            refLinkEl.textContent =
-                referralLink;
-        }
+        updateProgress(
+            saved.referral_count || 0
+        );
 
 
-        /* =========================
-           COPY BUTTON
-        ========================= */
+        /* COPY BUTTON */
 
         const copyButton =
             document.querySelector("#copyRef");
 
 
-        if (copyButton) {
+        copyButton.onclick = async () => {
 
-            copyButton.onclick =
-                async function () {
+            try {
 
-                    try {
+                await navigator.clipboard.writeText(
+                    referralLink
+                );
 
-                        await navigator.clipboard.writeText(
-                            referralLink
-                        );
+                copyButton.textContent =
+                    "COPIED ✓";
 
-                        copyButton.textContent =
-                            "COPIED ✓";
+                setTimeout(() => {
 
+                    copyButton.textContent =
+                        "COPY";
 
-                        setTimeout(() => {
+                }, 1500);
 
-                            copyButton.textContent =
-                                "COPY";
+            } catch (error) {
 
-                        }, 1500);
-
-                    } catch (error) {
-
-                        console.error(
-                            "Clipboard error:",
-                            error
-                        );
-
-                        alert(
-                            "Copy failed. Please copy the referral link manually."
-                        );
-                    }
-                };
-        }
+                alert(
+                    "Please copy the referral link manually."
+                );
+            }
+        };
 
 
-        /* =========================
-           UPDATE UI
-        ========================= */
-
-        progress(
-            saved.referral_count || 0
-        );
-
+        /* UPDATE DATA */
 
         loadStats();
 
         loadLeaderboard();
 
 
+        /* SCROLL */
+
+        setTimeout(() => {
+
+            successSection.scrollIntoView({
+
+                behavior: "smooth",
+
+                block: "center"
+
+            });
+
+        }, 200);
+
+
     } catch (error) {
 
 
         console.error(
-            "APPLICATION SUBMISSION ERROR:",
+            "SUBMIT ERROR:",
             error
         );
 
 
-        let message =
-            "Application could not be submitted. Please try again.";
-
-
-        const errorText =
-            String(error.message).toLowerCase();
-
-
         if (
-            errorText.includes("duplicate") ||
-            errorText.includes("unique")
+            error.message.includes(
+                "DUPLICATE_APPLICATION"
+            )
         ) {
 
-            message =
-                "Duplicate application detected. Each participant may submit only once.";
-
-        } else if (
-            errorText.includes("referral_code")
-        ) {
-
-            message =
-                "A referral system error occurred. Please try again.";
+            alert(
+                "This email has already submitted an application."
+            );
 
         } else {
 
-            /* Temporary debugging */
-            console.log(
-                "FULL ERROR:",
+            alert(
+                "Application could not be submitted.\n\n" +
                 error.message
             );
         }
 
 
-        alert(message);
+        /* RESET BUTTON */
 
+        submitButton.disabled = false;
 
-    } finally {
-
-
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "SUBMIT WHITELIST APPLICATION →";
-        }
+        submitButton.textContent =
+            "SUBMIT WHITELIST APPLICATION →";
     }
 }
 
 
-/* =========================
+/* ===============================
    INITIALIZE
-========================= */
+================================ */
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    function () {
 
         console.log(
-            "NEXORA APP INITIALIZED"
+            "NEXORA INITIALIZED"
         );
 
 
@@ -750,10 +655,11 @@ document.addEventListener(
 
         loadLeaderboard();
 
+        updateProgress(0);
+
 
         const referrer =
             document.querySelector("#referrer");
-
 
         if (referrer) {
 
@@ -770,17 +676,8 @@ document.addEventListener(
 
             form.addEventListener(
                 "submit",
-                submit
-            );
-
-        } else {
-
-            console.error(
-                "ERROR: #whitelistForm not found!"
+                handleSubmit
             );
         }
-
-
-        progress(0);
     }
 );
